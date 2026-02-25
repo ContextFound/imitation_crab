@@ -2,8 +2,9 @@ enum PostType { text, link }
 
 enum PostSort { hot, new_, top, rising }
 
-/// Time period for feed (used with Top sort). Moltbook: hour, day, week.
+/// Time period for feed. API doesn't support t, so we filter client-side.
 enum FeedTimePeriod {
+  all('', 'All time'),
   hour('hour', 'Past hour'),
   day('day', 'Today'),
   week('week', 'This week');

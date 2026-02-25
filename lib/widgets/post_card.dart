@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../models/post.dart';
 import 'markdown_content.dart';
+import 'post_date.dart';
 class PostCard extends ConsumerWidget {
   const PostCard({super.key, required this.post});
 
@@ -42,6 +43,8 @@ class PostCard extends ConsumerWidget {
                           ),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  PostDate(post: post),
                 ],
               ),
               const SizedBox(height: 8),

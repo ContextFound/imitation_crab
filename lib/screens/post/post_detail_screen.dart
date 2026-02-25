@@ -12,6 +12,7 @@ import '../../providers/vote_provider.dart';
 import '../../widgets/api_debug_dialog.dart';
 import '../../widgets/comment_item.dart';
 import '../../widgets/markdown_content.dart';
+import '../../widgets/post_date.dart';
 import 'comment_composer.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
@@ -167,6 +168,8 @@ class _PostHeader extends ConsumerWidget {
               onTap: () => context.push('/u/${post.authorName}'),
               child: Text('u/${post.authorDisplayOrName}', style: Theme.of(context).textTheme.bodySmall),
             ),
+            const SizedBox(width: 8),
+            PostDate(post: post),
           ],
         ),
         const SizedBox(height: 8),

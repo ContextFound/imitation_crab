@@ -53,10 +53,11 @@ class SearchResults {
   }
 
   /// Converts search API agent format (author nested, title/content) to Agent model format.
+  /// Handles null submolt/post from search API for agent results.
   static Map<String, dynamic> _agentFromSearchResult(Map<String, dynamic> json) {
     final author = json['author'] as Map<String, dynamic>?;
-    final id = author?['id'] ?? json['id'];
-    final name = author?['name'] ?? json['title'] ?? '';
+    final id = (author?['id'] ?? json['id'])?.toString() ?? '';
+    final name = (author?['name'] ?? json['title'])?.toString() ?? '';
     return {
       'id': id,
       'name': name,
