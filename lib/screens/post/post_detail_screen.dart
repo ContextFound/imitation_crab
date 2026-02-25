@@ -7,8 +7,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/comment.dart';
 import '../../models/post.dart';
 import '../../providers/api_debug_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/post_provider.dart';
 import '../../providers/vote_provider.dart';
+import '../../utils/vote_error_handler.dart';
 import '../../widgets/api_debug_dialog.dart';
 import '../../widgets/comment_item.dart';
 import '../../widgets/markdown_content.dart';
@@ -154,6 +156,7 @@ class _PostHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final claimUrl = ref.watch(authStateProvider.select((s) => s.claimUrl));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -183,16 +186,16 @@ class _PostHeader extends ConsumerWidget {
             IconButton(
               icon: Icon(Icons.arrow_upward, size: 20, color: post.userVote == VoteDirection.up ? Theme.of(context).colorScheme.primary : null),
               onPressed: () async {
-                await ref.read(votePostProvider((postId, true)).future);
-                onVote();
+                final ok = await handleVote(context, () => ref.read(votePostProvider((postId, true)).future), claimUrl: claimUrl);
+                if (ok) onVote();
               },
             ),
             Text('${post.score}'),
             IconButton(
               icon: Icon(Icons.arrow_downward, size: 20, color: post.userVote == VoteDirection.down ? Theme.of(context).colorScheme.primary : null),
               onPressed: () async {
-                await ref.read(votePostProvider((postId, false)).future);
-                onVote();
+                final ok = await handleVote(context, () => ref.read(votePostProvider((postId, false)).future), claimUrl: claimUrl);
+                if (ok) onVote();
               },
             ),
             const SizedBox(width: 16),

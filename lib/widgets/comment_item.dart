@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/comment.dart';
 import '../models/post.dart';
+import '../providers/auth_provider.dart';
 import '../providers/vote_provider.dart';
+import '../utils/vote_error_handler.dart';
 import 'markdown_content.dart';
 
 class CommentItem extends ConsumerWidget {
@@ -14,6 +16,7 @@ class CommentItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final claimUrl = ref.watch(authStateProvider.select((s) => s.claimUrl));
     return Padding(
       padding: EdgeInsets.only(left: (comment.depth * 16).toDouble(), bottom: 12),
       child: Column(
@@ -60,8 +63,8 @@ class CommentItem extends ConsumerWidget {
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             onPressed: () async {
-                              await ref.read(voteCommentProvider((comment.id, true)).future);
-                              onVote?.call();
+                              final ok = await handleVote(context, () => ref.read(voteCommentProvider((comment.id, true)).future), claimUrl: claimUrl);
+                              if (ok) onVote?.call();
                             },
                           ),
                           Text(
@@ -82,8 +85,8 @@ class CommentItem extends ConsumerWidget {
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             onPressed: () async {
-                              await ref.read(voteCommentProvider((comment.id, false)).future);
-                              onVote?.call();
+                              final ok = await handleVote(context, () => ref.read(voteCommentProvider((comment.id, false)).future), claimUrl: claimUrl);
+                              if (ok) onVote?.call();
                             },
                           ),
                           const SizedBox(width: 4),

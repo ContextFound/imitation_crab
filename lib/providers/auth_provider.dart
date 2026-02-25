@@ -10,6 +10,7 @@ import '../core/api/moltbook_client.dart';
 import '../models/agent.dart';
 
 const _apiKeyKey = 'moltbook_api_key';
+const _claimUrlKey = 'moltbook_claim_url';
 
 class RegistrationDetails {
   const RegistrationDetails({
@@ -33,6 +34,7 @@ class AuthState {
     this.error,
     this.registrationDetails,
     this.agentNameTaken = false,
+    this.claimUrl,
   });
 
   final Agent? agent;
@@ -41,8 +43,10 @@ class AuthState {
   final String? error;
   final RegistrationDetails? registrationDetails;
   final bool agentNameTaken;
+  final String? claimUrl;
 
   bool get isAuthenticated => apiKey != null && apiKey!.isNotEmpty;
+  bool get needsClaim => agent != null && !agent!.isClaimed;
 }
 
 class AuthRefreshNotifier extends ChangeNotifier {
@@ -91,17 +95,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = prefs.getString(_apiKeyKey);
+      final claimUrl = prefs.getString(_claimUrlKey);
       if (key != null && key.isNotEmpty) {
         _client.apiKey = key;
         final agent = await _api.getMe();
-        state = AuthState(apiKey: key, agent: agent);
+        state = AuthState(apiKey: key, agent: agent, claimUrl: claimUrl);
       } else {
         state = const AuthState();
       }
     } catch (_) {
       await logout();
     } finally {
-      state = AuthState(apiKey: state.apiKey, agent: state.agent, isLoading: false);
+      state = AuthState(
+        apiKey: state.apiKey,
+        agent: state.agent,
+        claimUrl: state.claimUrl,
+        isLoading: false,
+      );
       _refreshNotifier.refresh();
     }
   }
@@ -113,7 +123,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final agent = await _api.getMe();
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_apiKeyKey, apiKey);
-      state = AuthState(apiKey: apiKey, agent: agent);
+      final claimUrl = prefs.getString(_claimUrlKey);
+      state = AuthState(apiKey: apiKey, agent: agent, claimUrl: claimUrl);
       _refreshNotifier.refresh();
     } on ApiException catch (e) {
       state = AuthState(error: e.message, isLoading: false);
@@ -135,11 +146,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
       _client.apiKey = apiKey;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_apiKeyKey, apiKey);
+      if (claimUrl != null && claimUrl.isNotEmpty) {
+        await prefs.setString(_claimUrlKey, claimUrl);
+      }
       final agent = await _api.getMe();
       state = AuthState(
         apiKey: apiKey,
         agent: agent,
         isLoading: false,
+        claimUrl: claimUrl,
         registrationDetails: RegistrationDetails(
           name: name,
           description: description ?? '',
@@ -177,22 +192,39 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   void clearRegistrationDetails() {
-    state = AuthState(apiKey: state.apiKey, agent: state.agent);
+    state = AuthState(apiKey: state.apiKey, agent: state.agent, claimUrl: state.claimUrl);
   }
 
   Future<void> logout() async {
     _client.apiKey = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_apiKeyKey);
+    await prefs.remove(_claimUrlKey);
     state = const AuthState();
     _refreshNotifier.refresh();
   }
 
   void clearError() {
-    state = AuthState(apiKey: state.apiKey, agent: state.agent);
+    state = AuthState(apiKey: state.apiKey, agent: state.agent, claimUrl: state.claimUrl);
   }
 
   void setAgent(Agent agent) {
-    state = AuthState(apiKey: state.apiKey, agent: agent);
+    state = AuthState(apiKey: state.apiKey, agent: agent, claimUrl: state.claimUrl);
+  }
+
+  /// Re-fetches agent info to check if claiming has completed.
+  /// Clears the stored claim URL once the agent is claimed.
+  Future<void> refreshClaimStatus() async {
+    if (state.apiKey == null) return;
+    try {
+      final agent = await _api.getMe();
+      String? claimUrl = state.claimUrl;
+      if (agent.isClaimed) {
+        claimUrl = null;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove(_claimUrlKey);
+      }
+      state = AuthState(apiKey: state.apiKey, agent: agent, claimUrl: claimUrl);
+    } catch (_) {}
   }
 }

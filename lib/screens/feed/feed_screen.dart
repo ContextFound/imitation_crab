@@ -8,6 +8,7 @@ import '../../providers/api_debug_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/feed_provider.dart';
 import '../../widgets/api_debug_dialog.dart';
+import '../../widgets/claim_banner.dart';
 import '../../widgets/posts_list_view.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
@@ -101,10 +102,17 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           ),
         ),
       ),
-      body: PostsListBody(
-        feedAsync: feedAsync,
-        onRefresh: () async => ref.invalidate(feedPostsProvider((_sort, _timePeriod))),
-        bottomPadding: 80,
+      body: Column(
+        children: [
+          const ClaimBanner(),
+          Expanded(
+            child: PostsListBody(
+              feedAsync: feedAsync,
+              onRefresh: () async => ref.invalidate(feedPostsProvider((_sort, _timePeriod))),
+              bottomPadding: 80,
+            ),
+          ),
+        ],
       ),
       floatingActionButton: authState.isAuthenticated
           ? FloatingActionButton(
