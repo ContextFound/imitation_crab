@@ -4,11 +4,11 @@ import '../models/post.dart';
 import '../models/submolt.dart';
 import 'auth_provider.dart';
 
-final submoltsListProvider = FutureProvider<List<Submolt>>((ref) async {
+final submoltsListProvider = FutureProvider.family<List<Submolt>, SubmoltListSort>((ref, sort) async {
   final api = ref.watch(moltbookApiProvider);
   final authState = ref.watch(authStateProvider);
   if (!authState.isAuthenticated) return [];
-  final res = await api.getSubmolts();
+  final res = await api.getSubmolts(sort: sort);
   final data = res['data'] as List<dynamic>? ?? res['submolts'] as List<dynamic>? ?? [];
   return data.map((e) => Submolt.fromJson(e as Map<String, dynamic>)).toList();
 });

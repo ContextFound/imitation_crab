@@ -19,11 +19,12 @@ class FeedScreen extends ConsumerStatefulWidget {
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
   PostSort _sort = PostSort.hot;
+  FeedTimePeriod _timePeriod = FeedTimePeriod.day;
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
-    final feedAsync = ref.watch(feedPostsProvider(_sort));
+    final feedAsync = ref.watch(feedPostsProvider((_sort, _timePeriod)));
 
     return Scaffold(
       appBar: AppBar(
@@ -50,14 +51,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
-            onPressed: () => ref.invalidate(feedPostsProvider(_sort)),
+            onPressed: () => ref.invalidate(feedPostsProvider((_sort, _timePeriod))),
           ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => context.push('/search'),
           ),
           IconButton(
-            icon: const Icon(Icons.tune),
+            icon: const Icon(Icons.account_tree),
             onPressed: () => context.push('/submolts'),
           ),
           IconButton(
@@ -67,18 +68,42 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: PostSortChips(
-              sort: _sort,
-              onSortChanged: (s) => setState(() => _sort = s),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: PostSortChips(
+                    sort: _sort,
+                    onSortChanged: (s) => setState(() => _sort = s),
+                  ),
+                ),
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<FeedTimePeriod>(
+                    value: _timePeriod,
+                    isDense: true,
+                    icon: const Icon(Icons.schedule, size: 20),
+                    items: FeedTimePeriod.values
+                        .map(
+                          (p) => DropdownMenuItem(
+                            value: p,
+                            child: Text(p.label),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (p) {
+                      if (p != null) setState(() => _timePeriod = p);
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
       body: PostsListBody(
         feedAsync: feedAsync,
-        onRefresh: () async => ref.invalidate(feedPostsProvider(_sort)),
+        onRefresh: () async => ref.invalidate(feedPostsProvider((_sort, _timePeriod))),
         bottomPadding: 80,
       ),
       floatingActionButton: authState.isAuthenticated

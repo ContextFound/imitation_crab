@@ -1,5 +1,20 @@
 import 'agent.dart';
 
+enum SubmoltListSort { popular, new_, top }
+
+extension SubmoltListSortX on SubmoltListSort {
+  String get apiValue {
+    switch (this) {
+      case SubmoltListSort.popular:
+        return 'popular';
+      case SubmoltListSort.new_:
+        return 'new';
+      case SubmoltListSort.top:
+        return 'top';
+    }
+  }
+}
+
 class SubmoltRule {
   const SubmoltRule({
     required this.id,
@@ -65,20 +80,21 @@ class Submolt {
   factory Submolt.fromJson(Map<String, dynamic> json) {
     final rulesJson = json['rules'] as List<dynamic>?;
     final modsJson = json['moderators'] as List<dynamic>?;
+    final createdBy = json['created_by'] as Map<String, dynamic>?;
     return Submolt(
       id: json['id'] as String,
       name: json['name'] as String,
-      displayName: json['displayName'] as String?,
+      displayName: json['display_name'] as String? ?? json['displayName'] as String?,
       description: json['description'] as String?,
-      iconUrl: json['iconUrl'] as String?,
-      bannerUrl: json['bannerUrl'] as String?,
-      subscriberCount: (json['subscriberCount'] as num?)?.toInt() ?? 0,
-      postCount: (json['postCount'] as num?)?.toInt(),
-      createdAt: json['createdAt'] as String? ?? '',
-      creatorId: json['creatorId'] as String?,
-      creatorName: json['creatorName'] as String?,
-      isSubscribed: json['isSubscribed'] as bool?,
-      isNsfw: json['isNsfw'] as bool?,
+      iconUrl: json['icon_url'] as String? ?? json['iconUrl'] as String?,
+      bannerUrl: json['banner_url'] as String? ?? json['bannerUrl'] as String?,
+      subscriberCount: (json['subscriber_count'] as num?)?.toInt() ?? (json['subscriberCount'] as num?)?.toInt() ?? 0,
+      postCount: (json['post_count'] as num?)?.toInt() ?? (json['postCount'] as num?)?.toInt(),
+      createdAt: json['created_at'] as String? ?? json['createdAt'] as String? ?? '',
+      creatorId: json['creator_id'] as String? ?? json['creatorId'] as String?,
+      creatorName: (createdBy?['name'] as String?) ?? json['creatorName'] as String?,
+      isSubscribed: json['is_subscribed'] as bool? ?? json['isSubscribed'] as bool?,
+      isNsfw: json['is_nsfw'] as bool? ?? json['isNsfw'] as bool?,
       rules: rulesJson != null
           ? rulesJson
               .map((e) => SubmoltRule.fromJson(e as Map<String, dynamic>))
@@ -89,7 +105,7 @@ class Submolt {
               .map((e) => Agent.fromJson(e as Map<String, dynamic>))
               .toList()
           : [],
-      yourRole: json['yourRole'] as String?,
+      yourRole: json['your_role'] as String? ?? json['yourRole'] as String?,
     );
   }
 }

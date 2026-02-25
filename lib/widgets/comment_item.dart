@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/comment.dart';
+import '../models/post.dart';
+import '../providers/vote_provider.dart';
 import 'markdown_content.dart';
 
-class CommentItem extends StatelessWidget {
-  const CommentItem({super.key, required this.comment});
+class CommentItem extends ConsumerWidget {
+  const CommentItem({super.key, required this.comment, this.onVote});
 
   final Comment comment;
+  final VoidCallback? onVote;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: EdgeInsets.only(left: (comment.depth * 16).toDouble(), bottom: 12),
       child: Column(
@@ -32,19 +36,64 @@ class CommentItem extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'u/${comment.authorDisplayOrName}',
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+                        Expanded(
+                          child: Text(
+                            'u/${comment.authorDisplayOrName}',
+                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          '${comment.score} pts',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
+                        if (onVote != null) ...[
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_upward,
+                              size: 16,
+                              color: comment.userVote == VoteDirection.up ? Theme.of(context).colorScheme.primary : null,
+                            ),
+                            style: IconButton.styleFrom(
+                              padding: const EdgeInsets.all(4),
+                              minimumSize: const Size(24, 24),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () async {
+                              await ref.read(voteCommentProvider((comment.id, true)).future);
+                              onVote?.call();
+                            },
+                          ),
+                          Text(
+                            '${comment.score}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_downward,
+                              size: 16,
+                              color: comment.userVote == VoteDirection.down ? Theme.of(context).colorScheme.primary : null,
+                            ),
+                            style: IconButton.styleFrom(
+                              padding: const EdgeInsets.all(4),
+                              minimumSize: const Size(24, 24),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () async {
+                              await ref.read(voteCommentProvider((comment.id, false)).future);
+                              onVote?.call();
+                            },
+                          ),
+                          const SizedBox(width: 4),
+                        ] else
+                          Text(
+                            '${comment.score} pts',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -56,7 +105,7 @@ class CommentItem extends StatelessWidget {
           ),
           if (comment.replies.isNotEmpty) ...[
             const SizedBox(height: 8),
-            ...comment.replies.map((c) => CommentItem(comment: c)),
+            ...comment.replies.map((c) => CommentItem(comment: c, onVote: onVote)),
           ],
         ],
       ),

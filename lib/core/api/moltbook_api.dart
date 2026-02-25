@@ -136,13 +136,13 @@ class MoltbookApi {
   // --- Submolts ---
 
   Future<Map<String, dynamic>> getSubmolts({
-    String sort = 'popular',
+    required SubmoltListSort sort,
     int limit = 50,
     int offset = 0,
   }) async {
     return client.get<Map<String, dynamic>>(
       '/submolts',
-      queryParameters: {'sort': sort, 'limit': limit, 'offset': offset},
+      queryParameters: {'sort': sort.apiValue, 'limit': limit, 'offset': offset},
     );
   }
 

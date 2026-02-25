@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/post.dart';
+import '../../models/submolt.dart';
 import '../../providers/api_debug_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/submolt_provider.dart';
@@ -80,7 +81,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final submoltsAsync = ref.watch(submoltsListProvider);
+    final submoltsAsync = ref.watch(submoltsListProvider(SubmoltListSort.popular));
 
     return Scaffold(
       appBar: AppBar(

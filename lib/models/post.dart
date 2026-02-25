@@ -2,6 +2,17 @@ enum PostType { text, link }
 
 enum PostSort { hot, new_, top, rising }
 
+/// Time period for feed (used with Top sort). Moltbook: hour, day, week.
+enum FeedTimePeriod {
+  hour('hour', 'Past hour'),
+  day('day', 'Today'),
+  week('week', 'This week');
+
+  const FeedTimePeriod(this.apiValue, this.label);
+  final String apiValue;
+  final String label;
+}
+
 enum VoteDirection { up, down }
 
 class Post {

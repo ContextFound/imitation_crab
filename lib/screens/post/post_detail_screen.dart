@@ -104,7 +104,12 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                     commentsAsync.when(
                       data: (comments) => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: comments.map((c) => CommentItem(comment: c)).toList(),
+                        children: comments
+                            .map((c) => CommentItem(
+                                  comment: c,
+                                  onVote: () => ref.invalidate(postCommentsProvider((widget.postId, _sort))),
+                                ))
+                            .toList(),
                       ),
                       loading: () => const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
                       error: (e, _) => SelectableText('Error: $e'),

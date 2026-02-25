@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/api_debug_provider.dart';
 import '../../providers/search_provider.dart';
+import '../../widgets/api_debug_dialog.dart';
 import '../../widgets/post_card.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -35,6 +38,24 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           onSubmitted: (q) => setState(() => _query = q.trim()),
         ),
         actions: [
+          if (kDebugMode)
+            IconButton(
+              icon: const Icon(Icons.bug_report),
+              tooltip: 'API Debug',
+              onPressed: () {
+                final record = ref.read(apiDebugNotifierProvider).latest;
+                if (record == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No API calls recorded yet')),
+                  );
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (_) => ApiDebugDialog(record: record),
+                  );
+                }
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => setState(() => _query = _controller.text.trim()),
