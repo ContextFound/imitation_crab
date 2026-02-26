@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,7 +10,6 @@ import '../../models/post.dart';
 import '../../providers/api_debug_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/post_provider.dart';
-import '../../providers/vote_provider.dart';
 import '../../utils/vote_error_handler.dart';
 import '../../widgets/api_debug_dialog.dart';
 import '../../widgets/comment_item.dart';
@@ -29,10 +29,15 @@ class PostDetailScreen extends ConsumerStatefulWidget {
 class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   CommentSort _sort = CommentSort.top;
 
+  void _refresh() {
+    debugPrint('[PostDetailScreen] _refresh called, invalidating postDetailProvider');
+    ref.invalidate(postDetailProvider((widget.postId, _sort)));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final postAsync = ref.watch(postProvider(widget.postId));
-    final commentsAsync = ref.watch(postCommentsProvider((widget.postId, _sort)));
+    final detailAsync = ref.watch(postDetailProvider((widget.postId, _sort)));
+    debugPrint('[PostDetailScreen] build: detailAsync state=${detailAsync.isLoading ? "loading" : detailAsync.hasValue ? "data(score=${detailAsync.value?.post.score}, userVote=${detailAsync.value?.post.userVote})" : "error"}');
 
     return Scaffold(
       appBar: AppBar(
@@ -57,10 +62,15 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                 }
               },
             ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: _refresh,
+          ),
         ],
       ),
-      body: postAsync.when(
-        data: (post) => Column(
+      body: detailAsync.when(
+        data: (detail) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
@@ -70,24 +80,24 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _PostHeader(
-                      post: post,
+                      post: detail.post,
                       postId: widget.postId,
-                      onVote: () => ref.invalidate(postProvider(widget.postId)),
+                      onVote: _refresh,
                     ),
                     const SizedBox(height: 16),
-                    if (post.content != null && post.content!.isNotEmpty)
-                      MarkdownContent(data: post.content!),
-                    if (post.url != null && post.url!.isNotEmpty) ...[
+                    if (detail.post.content != null && detail.post.content!.isNotEmpty)
+                      MarkdownContent(data: detail.post.content!),
+                    if (detail.post.url != null && detail.post.url!.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       InkWell(
-                        onTap: () => launchUrl(Uri.parse(post.url!)),
+                        onTap: () => launchUrl(Uri.parse(detail.post.url!)),
                         child: Row(
                           children: [
                             Icon(Icons.link, color: Theme.of(context).colorScheme.primary),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                post.url!,
+                                detail.post.url!,
                                 style: TextStyle(color: Theme.of(context).colorScheme.primary),
                               ),
                             ),
@@ -104,18 +114,14 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    commentsAsync.when(
-                      data: (comments) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: comments
-                            .map((c) => CommentItem(
-                                  comment: c,
-                                  onVote: () => ref.invalidate(postCommentsProvider((widget.postId, _sort))),
-                                ))
-                            .toList(),
-                      ),
-                      loading: () => const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
-                      error: (e, _) => SelectableText('Error: $e'),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: detail.comments
+                          .map((c) => CommentItem(
+                                comment: c,
+                                onVote: _refresh,
+                              ))
+                          .toList(),
                     ),
                   ],
                 ),
@@ -123,7 +129,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             ),
             CommentComposer(
               postId: widget.postId,
-              onSubmitted: () => ref.invalidate(postCommentsProvider((widget.postId, _sort))),
+              onSubmitted: _refresh,
             ),
           ],
         ),
@@ -156,6 +162,7 @@ class _PostHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('[PostHeader] build: score=${post.score}, userVote=${post.userVote}');
     final claimUrl = ref.watch(authStateProvider.select((s) => s.claimUrl));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,6 +180,16 @@ class _PostHeader extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             PostDate(post: post),
+            const Spacer(),
+            GestureDetector(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: post.id));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Post number copied'), duration: Duration(seconds: 2)),
+                );
+              },
+              child: Icon(Icons.share_outlined, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -187,8 +204,8 @@ class _PostHeader extends ConsumerWidget {
               icon: Icon(Icons.arrow_upward, size: 20, color: post.userVote == VoteDirection.up ? Theme.of(context).colorScheme.primary : null),
               onPressed: () async {
                 debugPrint('[PostHeader] Upvote tapped for post $postId');
-                ref.invalidate(votePostProvider((postId, true)));
-                final ok = await handleVote(context, () => ref.read(votePostProvider((postId, true)).future), claimUrl: claimUrl);
+                final api = ref.read(moltbookApiProvider);
+                final ok = await votePost(context, api, postId, isUpvote: true, claimUrl: claimUrl);
                 debugPrint('[PostHeader] Upvote result: $ok');
                 if (ok) onVote();
               },
@@ -198,8 +215,8 @@ class _PostHeader extends ConsumerWidget {
               icon: Icon(Icons.arrow_downward, size: 20, color: post.userVote == VoteDirection.down ? Theme.of(context).colorScheme.primary : null),
               onPressed: () async {
                 debugPrint('[PostHeader] Downvote tapped for post $postId');
-                ref.invalidate(votePostProvider((postId, false)));
-                final ok = await handleVote(context, () => ref.read(votePostProvider((postId, false)).future), claimUrl: claimUrl);
+                final api = ref.read(moltbookApiProvider);
+                final ok = await votePost(context, api, postId, isUpvote: false, claimUrl: claimUrl);
                 debugPrint('[PostHeader] Downvote result: $ok');
                 if (ok) onVote();
               },

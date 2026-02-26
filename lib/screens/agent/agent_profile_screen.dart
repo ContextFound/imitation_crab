@@ -21,6 +21,13 @@ class AgentProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
         title: Text('u/$agentName'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: () => ref.invalidate(agentProfileProvider(agentName)),
+          ),
+        ],
       ),
       body: profileAsync.when(
         data: (data) {

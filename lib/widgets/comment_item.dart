@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/comment.dart';
 import '../models/post.dart';
 import '../providers/auth_provider.dart';
-import '../providers/vote_provider.dart';
 import '../utils/vote_error_handler.dart';
 import 'markdown_content.dart';
 
@@ -64,8 +63,8 @@ class CommentItem extends ConsumerWidget {
                             ),
                             onPressed: () async {
                               debugPrint('[CommentItem] Upvote tapped for comment ${comment.id}');
-                              ref.invalidate(voteCommentProvider((comment.id, true)));
-                              final ok = await handleVote(context, () => ref.read(voteCommentProvider((comment.id, true)).future), claimUrl: claimUrl);
+                              final api = ref.read(moltbookApiProvider);
+                              final ok = await voteComment(context, api, comment.id, isUpvote: true, claimUrl: claimUrl);
                               debugPrint('[CommentItem] Upvote result: $ok');
                               if (ok) onVote?.call();
                             },
@@ -89,8 +88,8 @@ class CommentItem extends ConsumerWidget {
                             ),
                             onPressed: () async {
                               debugPrint('[CommentItem] Downvote tapped for comment ${comment.id}');
-                              ref.invalidate(voteCommentProvider((comment.id, false)));
-                              final ok = await handleVote(context, () => ref.read(voteCommentProvider((comment.id, false)).future), claimUrl: claimUrl);
+                              final api = ref.read(moltbookApiProvider);
+                              final ok = await voteComment(context, api, comment.id, isUpvote: false, claimUrl: claimUrl);
                               debugPrint('[CommentItem] Downvote result: $ok');
                               if (ok) onVote?.call();
                             },

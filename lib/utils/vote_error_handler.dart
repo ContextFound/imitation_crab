@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../core/api/api_exceptions.dart';
+import '../core/api/moltbook_api.dart';
 
-/// Handles vote API calls with user-friendly error feedback.
+/// Calls a vote API endpoint directly and handles errors with user feedback.
 /// Returns true if the vote succeeded, false otherwise.
 ///
 /// If [claimUrl] is provided, it will be used in the "Open Claim Link" action
@@ -53,4 +54,24 @@ Future<bool> handleVote(
     }
     return false;
   }
+}
+
+/// Upvote or downvote a post directly via the API (no provider caching).
+Future<bool> votePost(BuildContext context, MoltbookApi api, String postId, {required bool isUpvote, String? claimUrl}) {
+  debugPrint('[votePost] ${isUpvote ? "Upvote" : "Downvote"} for post $postId');
+  return handleVote(
+    context,
+    () => isUpvote ? api.upvotePost(postId) : api.downvotePost(postId),
+    claimUrl: claimUrl,
+  );
+}
+
+/// Upvote or downvote a comment directly via the API (no provider caching).
+Future<bool> voteComment(BuildContext context, MoltbookApi api, String commentId, {required bool isUpvote, String? claimUrl}) {
+  debugPrint('[voteComment] ${isUpvote ? "Upvote" : "Downvote"} for comment $commentId');
+  return handleVote(
+    context,
+    () => isUpvote ? api.upvoteComment(commentId) : api.downvoteComment(commentId),
+    claimUrl: claimUrl,
+  );
 }
