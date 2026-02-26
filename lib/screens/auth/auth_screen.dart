@@ -108,6 +108,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> with SingleTickerProvid
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Image.asset(
+                    'assets/images/mascot.png',
+                    width: 400,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'imitationCrab',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
