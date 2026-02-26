@@ -27,7 +27,7 @@ class CommentItem extends ConsumerWidget {
               CircleAvatar(
                 radius: 14,
                 child: Text(
-                  (comment.authorDisplayOrName.isNotEmpty ? comment.authorDisplayOrName[0] : '?').toUpperCase(),
+                  (comment.authorName.isNotEmpty ? comment.authorName[0] : '?').toUpperCase(),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ),
@@ -39,11 +39,24 @@ class CommentItem extends ConsumerWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            'u/${comment.authorDisplayOrName}',
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'u/${comment.authorName}',
+                                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                 ),
+                                if (comment.authorDisplayName != null && comment.authorDisplayName!.isNotEmpty && comment.authorDisplayName != comment.authorName)
+                                  TextSpan(
+                                    text: '  ${comment.authorDisplayName}',
+                                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                              ],
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
