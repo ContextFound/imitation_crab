@@ -10,7 +10,7 @@ class PostSortChips extends StatelessWidget {
     super.key,
     required this.sort,
     required this.onSortChanged,
-    this.availableSorts = const [PostSort.hot, PostSort.new_, PostSort.top, PostSort.rising],
+    this.availableSorts = const [PostSort.random, PostSort.new_, PostSort.top, PostSort.discussed],
   });
 
   final PostSort sort;
@@ -18,10 +18,10 @@ class PostSortChips extends StatelessWidget {
   final List<PostSort> availableSorts;
 
   static const Map<PostSort, String> _labels = {
-    PostSort.hot: 'Hot',
+    PostSort.random: 'Random',
     PostSort.new_: 'New',
     PostSort.top: 'Top',
-    PostSort.rising: 'Rising',
+    PostSort.discussed: 'Discussed',
   };
 
   @override

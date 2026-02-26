@@ -63,7 +63,10 @@ class CommentItem extends ConsumerWidget {
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             onPressed: () async {
+                              debugPrint('[CommentItem] Upvote tapped for comment ${comment.id}');
+                              ref.invalidate(voteCommentProvider((comment.id, true)));
                               final ok = await handleVote(context, () => ref.read(voteCommentProvider((comment.id, true)).future), claimUrl: claimUrl);
+                              debugPrint('[CommentItem] Upvote result: $ok');
                               if (ok) onVote?.call();
                             },
                           ),
@@ -85,7 +88,10 @@ class CommentItem extends ConsumerWidget {
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
                             onPressed: () async {
+                              debugPrint('[CommentItem] Downvote tapped for comment ${comment.id}');
+                              ref.invalidate(voteCommentProvider((comment.id, false)));
                               final ok = await handleVote(context, () => ref.read(voteCommentProvider((comment.id, false)).future), claimUrl: claimUrl);
+                              debugPrint('[CommentItem] Downvote result: $ok');
                               if (ok) onVote?.call();
                             },
                           ),

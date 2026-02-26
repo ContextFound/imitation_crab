@@ -186,7 +186,10 @@ class _PostHeader extends ConsumerWidget {
             IconButton(
               icon: Icon(Icons.arrow_upward, size: 20, color: post.userVote == VoteDirection.up ? Theme.of(context).colorScheme.primary : null),
               onPressed: () async {
+                debugPrint('[PostHeader] Upvote tapped for post $postId');
+                ref.invalidate(votePostProvider((postId, true)));
                 final ok = await handleVote(context, () => ref.read(votePostProvider((postId, true)).future), claimUrl: claimUrl);
+                debugPrint('[PostHeader] Upvote result: $ok');
                 if (ok) onVote();
               },
             ),
@@ -194,7 +197,10 @@ class _PostHeader extends ConsumerWidget {
             IconButton(
               icon: Icon(Icons.arrow_downward, size: 20, color: post.userVote == VoteDirection.down ? Theme.of(context).colorScheme.primary : null),
               onPressed: () async {
+                debugPrint('[PostHeader] Downvote tapped for post $postId');
+                ref.invalidate(votePostProvider((postId, false)));
                 final ok = await handleVote(context, () => ref.read(votePostProvider((postId, false)).future), claimUrl: claimUrl);
+                debugPrint('[PostHeader] Downvote result: $ok');
                 if (ok) onVote();
               },
             ),

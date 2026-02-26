@@ -56,6 +56,14 @@ class RegistrationSuccessDialog extends StatelessWidget {
                 onCopy: () => _copyToClipboard(context, 'Claim URL', details.claimUrl!),
               ),
             ],
+            if (details.verificationCode != null && details.verificationCode!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _CopyableField(
+                label: 'Verification code',
+                value: details.verificationCode!,
+                onCopy: () => _copyToClipboard(context, 'Verification code', details.verificationCode!),
+              ),
+            ],
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(12),

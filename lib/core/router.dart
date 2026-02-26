@@ -9,6 +9,7 @@ import '../screens/feed/feed_screen.dart';
 import '../screens/post/create_post_screen.dart';
 import '../screens/post/post_detail_screen.dart';
 import '../screens/search/search_screen.dart';
+import '../screens/settings/register_claim_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/submolt/submolt_detail_screen.dart';
 import '../screens/submolt/submolts_screen.dart';
@@ -80,6 +81,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'settings',
             builder: (_, __) => const SettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'register',
+                builder: (_, __) => const RegisterClaimScreen(),
+              ),
+            ],
           ),
         ],
       ),

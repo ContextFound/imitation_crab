@@ -18,12 +18,14 @@ class RegistrationDetails {
     required this.description,
     required this.apiKey,
     this.claimUrl,
+    this.verificationCode,
   });
 
   final String name;
   final String description;
   final String apiKey;
   final String? claimUrl;
+  final String? verificationCode;
 }
 
 class AuthState {
@@ -140,6 +142,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final agentData = res['agent'] as Map<String, dynamic>;
       final apiKey = agentData['api_key'] as String;
       final claimUrl = agentData['claim_url'] as String?;
+      final verificationCode = agentData['verification_code'] as String?;
       if (kDebugMode) {
         debugPrint('imitationCrab: New agent registered. API Key: $apiKey');
       }
@@ -160,6 +163,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           description: description ?? '',
           apiKey: apiKey,
           claimUrl: claimUrl,
+          verificationCode: verificationCode,
         ),
       );
       _refreshNotifier.refresh();
@@ -213,18 +217,28 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   /// Re-fetches agent info to check if claiming has completed.
+  /// Uses GET /agents/status which returns claim_url for pending agents.
   /// Clears the stored claim URL once the agent is claimed.
   Future<void> refreshClaimStatus() async {
     if (state.apiKey == null) return;
     try {
-      final agent = await _api.getMe();
-      String? claimUrl = state.claimUrl;
-      if (agent.isClaimed) {
-        claimUrl = null;
+      final statusRes = await _api.getClaimStatus();
+      final statusStr = statusRes['status'] as String?;
+      final claimUrlFromServer = statusRes['claim_url'] as String?;
+      if (statusStr == 'claimed') {
+        final agent = await _api.getMe();
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove(_claimUrlKey);
+        state = AuthState(apiKey: state.apiKey, agent: agent, claimUrl: null);
+      } else {
+        final agent = await _api.getMe();
+        final claimUrl = claimUrlFromServer ?? state.claimUrl;
+        if (claimUrl != null && claimUrl.isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(_claimUrlKey, claimUrl);
+        }
+        state = AuthState(apiKey: state.apiKey, agent: agent, claimUrl: claimUrl);
       }
-      state = AuthState(apiKey: state.apiKey, agent: agent, claimUrl: claimUrl);
     } catch (_) {}
   }
 }

@@ -19,7 +19,7 @@ class FeedScreen extends ConsumerStatefulWidget {
 }
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
-  PostSort _sort = PostSort.hot;
+  PostSort _sort = PostSort.random;
   FeedTimePeriod _timePeriod = FeedTimePeriod.day;
 
   @override
@@ -79,24 +79,25 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     onSortChanged: (s) => setState(() => _sort = s),
                   ),
                 ),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<FeedTimePeriod>(
-                    value: _timePeriod,
-                    isDense: true,
-                    icon: const Icon(Icons.schedule, size: 20),
-                    items: FeedTimePeriod.values
-                        .map(
-                          (p) => DropdownMenuItem(
-                            value: p,
-                            child: Text(p.label),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (p) {
-                      if (p != null) setState(() => _timePeriod = p);
-                    },
+                if (_sort.hasTimePeriod)
+                  DropdownButtonHideUnderline(
+                    child: DropdownButton<FeedTimePeriod>(
+                      value: _timePeriod,
+                      isDense: true,
+                      icon: const Icon(Icons.schedule, size: 20),
+                      items: FeedTimePeriod.values
+                          .map(
+                            (p) => DropdownMenuItem(
+                              value: p,
+                              child: Text(p.label),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (p) {
+                        if (p != null) setState(() => _timePeriod = p);
+                      },
+                    ),
                   ),
-                ),
               ],
             ),
           ),

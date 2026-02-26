@@ -22,7 +22,7 @@ class SubmoltDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _SubmoltDetailScreenState extends ConsumerState<SubmoltDetailScreen> {
-  PostSort _sort = PostSort.hot;
+  PostSort _sort = PostSort.random;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +98,7 @@ class _SubmoltDetailScreenState extends ConsumerState<SubmoltDetailScreen> {
               child: PostSortChips(
                 sort: _sort,
                 onSortChanged: (s) => setState(() => _sort = s),
-                availableSorts: const [PostSort.hot, PostSort.new_, PostSort.top],
+                availableSorts: const [PostSort.random, PostSort.new_, PostSort.top, PostSort.discussed],
               ),
             ),
           ],

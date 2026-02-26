@@ -1,6 +1,11 @@
 enum PostType { text, link }
 
-enum PostSort { hot, new_, top, rising }
+enum PostSort { random, new_, top, discussed }
+
+/// Whether a sort mode uses a time period filter.
+extension PostSortX on PostSort {
+  bool get hasTimePeriod => this == PostSort.top || this == PostSort.discussed;
+}
 
 /// Time period for feed. API doesn't support t, so we filter client-side.
 enum FeedTimePeriod {

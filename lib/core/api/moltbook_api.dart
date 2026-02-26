@@ -25,6 +25,10 @@ class MoltbookApi {
     return Agent.fromJson(res['agent'] as Map<String, dynamic>);
   }
 
+  Future<Map<String, dynamic>> getClaimStatus() async {
+    return client.get<Map<String, dynamic>>('/agents/status');
+  }
+
   Future<Agent> updateMe({String? displayName, String? description}) async {
     final res = await client.patch<Map<String, dynamic>>('/agents/me', data: {
       if (displayName != null) 'displayName': displayName,
@@ -48,7 +52,7 @@ class MoltbookApi {
   // --- Posts ---
 
   Future<Map<String, dynamic>> getPosts({
-    PostSort sort = PostSort.hot,
+    PostSort sort = PostSort.random,
     int limit = 25,
     int offset = 0,
     String? submolt,
@@ -169,7 +173,7 @@ class MoltbookApi {
 
   Future<Map<String, dynamic>> getSubmoltFeed(
     String name, {
-    PostSort sort = PostSort.hot,
+    PostSort sort = PostSort.random,
     int limit = 25,
     int offset = 0,
   }) async {
@@ -182,7 +186,7 @@ class MoltbookApi {
   // --- Feed ---
 
   Future<Map<String, dynamic>> getFeed({
-    PostSort sort = PostSort.hot,
+    PostSort sort = PostSort.random,
     int limit = 25,
     int offset = 0,
   }) async {
@@ -201,14 +205,14 @@ class MoltbookApi {
 
   static String _postSortToString(PostSort s) {
     switch (s) {
-      case PostSort.hot:
-        return 'hot';
+      case PostSort.random:
+        return 'random';
       case PostSort.new_:
         return 'new';
       case PostSort.top:
         return 'top';
-      case PostSort.rising:
-        return 'rising';
+      case PostSort.discussed:
+        return 'discussed';
     }
   }
 

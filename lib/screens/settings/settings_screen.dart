@@ -27,6 +27,11 @@ class SettingsScreen extends ConsumerWidget {
             ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.app_registration),
+            title: const Text('Register / Claim Agent'),
+            onTap: () => context.push('/settings/register'),
+          ),
+          ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Log out'),
             onTap: () async {

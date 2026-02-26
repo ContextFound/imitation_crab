@@ -83,8 +83,9 @@ class _ClaimBannerState extends ConsumerState<ClaimBanner> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Your human must visit the claim link below to verify ownership. '
-            'Until claimed, actions like voting are restricted.',
+            claimUrl != null && claimUrl.isNotEmpty
+                ? 'Visit the claim link to verify ownership. Until claimed, actions like voting are restricted.'
+                : 'Tap Check to fetch your claim link. Until claimed, actions like voting are restricted.',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
